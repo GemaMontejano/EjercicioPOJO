@@ -1,0 +1,85 @@
+package EjercicioPOJO;
+
+import java.sql.*;
+
+public class CountryDAO {
+	private Connection connection;
+
+	public CountryDAO(Connection connection) {
+		this.connection = connection;
+	}
+
+	public CountryDAO(int country_id, String country, String last_update) {
+
+	}
+
+	public boolean crearPais(int country_id, String country) {
+		if (connection == null) {
+			System.out.println("no se ha podido conectar a la Base de Datos");
+			return false;
+		}
+		try {
+			PreparedStatement ps = connection.prepareStatement("insert into country (country_id, country) values(?,?)");
+			ps.setInt(1, country_id);
+			ps.setString(2, country);
+			int filasAfectadas = ps.executeUpdate();
+			return filasAfectadas == 1;
+		} catch (Exception ex) {
+			System.out.println("Error al añadir el país");
+			System.out.println(ex.getMessage());
+			return false;
+		}
+	}
+
+	public boolean borrarPais(int country_id) {
+		try {
+			PreparedStatement ps = connection.prepareStatement("DELETE FROM country WHERE country_id = ?");
+			ps.setInt(1, country_id);
+
+			int filasBorradas = ps.executeUpdate();
+			return filasBorradas > 0;
+		} catch (SQLException ex) {
+			System.err.println("Error al borrar el país: " + ex.getMessage());
+			return false;
+		}
+	}
+
+	public Country paisPorId(int country_id) {
+		try {
+			PreparedStatement ps = connection.prepareStatement("SELECT * FROM country WHERE country_id = ?");
+			ps.setInt(1, country_id);
+
+			ResultSet result = ps.executeQuery();
+
+			if (result.next()) {
+				Country country = new Country(country_id, null);
+				country.setCountry_id(result.getInt("country_id"));
+				country.setCountry(result.getString("country"));
+				country.setLast_update(result.getString("last_update"));
+
+				return country;
+			} else {
+				return null;
+			}
+		} catch (SQLException ex) {
+			System.err.println("Error al buscar el país por id: " + ex.getMessage());
+			return null;
+		}
+	}
+
+	public boolean cambiarPais(int country_id, String newCountry) {
+		try {
+
+			PreparedStatement ps = connection.prepareStatement("UPDATE country SET country = ? WHERE country_id = ?");
+			ps.setString(1, newCountry);
+			ps.setInt(2, country_id);
+
+			int filasAfectadas = ps.executeUpdate();
+			return filasAfectadas > 0;
+		} catch (SQLException ex) {
+			System.err.println("Error al actualizar el nombre del país: " + ex.getMessage());
+			return false;
+		}
+
+	}
+}
